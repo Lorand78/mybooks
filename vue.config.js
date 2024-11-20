@@ -2,6 +2,6 @@
 export const configureWebpack = {
   output: {
     // publicPath: '/static/'
-    publicPath: '/test/'
+    publicPath: '/mybooks/'
   }
 };
