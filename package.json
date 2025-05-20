@@ -39,7 +39,7 @@
     "@iconify-json/mdi": "^1.1.60",
     "@mdi/font": "^7.3.67",
     "@types/sql.js": "^1.4.9",
-    "@vitejs/plugin-vue": "^4.4.0",
+    "@vitejs/plugin-vue": "^4.6.2",
     "aws-sdk": "^2.1480.0",
     "mock-aws-s3": "^4.0.2",
     "nock": "^13.3.6",

@@ -31,6 +31,11 @@ const routes = [
     component: () => import('../views/Book.vue'),
   },
   {
+    path: "/management/:type",
+    name: "Management",
+    component: () => import('../views/Management.vue'),
+  },
+  {
     path: "/teszt",
     name: "Teszt",
     component: () => import('../views/Teszt.vue'),

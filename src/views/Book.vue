@@ -1,11 +1,14 @@
 <script setup>
   import { useRouter } from "vue-router";
   import axios from 'axios'
-  import { onMounted, readonly, ref, watch } from 'vue';
+  import { computed, onMounted, ref, watch } from 'vue';
   import SnackBar from '../components/snackbar/Snackbar.vue'
   import MyDialog from '../components/myDialog/MyDialog.vue'
   import { author, category, booktype, osstatus, publisher, fetchData } from '../main'
-  import { loggedIn, user } from '../components/sidebar/state';
+  import { user } from '../components/sidebar/state';
+  import { nationality } from '../main';
+  import { useManagementUtils } from '@/utils/useManagementUtils'
+
   // import Home from './Home.vue'
   
   
@@ -25,13 +28,23 @@
   // const publisher = ref(null)
   const issaveBook = ref(false)
   const readstatus = ref("N")
+  // const readedIcon = ref('mdi-book-open-page-variant-outline')
+  const readedIcons = ['mdi-bookshelf', 'mdi-book-open-page-variant-outline', 'mdi-calendar-check-outline']
+  console.log("readstatus: " + readstatus.value)
+  // const currentIndex = ref(readstatus.value === 'N' ? 0 : (readstatus.value === 'P' ? 1 : 2))
+  const currentIndex = computed( () => readstatus.value === 'N' ? 0 : (readstatus.value === 'P' ? 1 : 2))
+  const readedIcon = computed( () => readedIcons[currentIndex.value])
   // const snackbarActivate = ref(false)
   const title = ref("")
   // const isActiveNewAuthor = ref(false)
-  const isSnackbarActive = ref(false)
   const refMyDialogNewAuthor = ref(null)
   const refMyDialogNewPublisher = ref(null)
   const refMyDialog = ref(null)
+  const myNewDialog = ref(null)
+  const isNewDialog = ref(false)
+  const newCat = ref(null)
+  const isModifyDialog = ref(false)
+  const isSnackbarActive = ref(false)
   const snackbarTitle = ref(null)
   const snackbarColor = ref("green")
   const newAuthorname = ref(null)
@@ -56,6 +69,13 @@
   const errorMsgCategory = ref("")
   const errorMsgBooktype = ref("")
   const errorMsgNewAuthor = ref("")
+  
+  const {
+  titlevalue, keyvalue, keyID, newtitle, modifytitle, deletetitle,
+  setMetaByCat, setItem
+} = useManagementUtils()
+
+
 
   function findIndex( obj, key, val) {
     const foundedIndex = ref(-1)
@@ -234,6 +254,7 @@
           tempMsg.value = "felvitele"
 
         } else {  //modtype == 'modify'
+        
           var sql = "UPDATE BOOK SET BK_BOOKTITLE = '" + title.value + "', BK_READED = '" + readstatus.value + "'";
           if ( actauthor.value.AT_ID ) { 
             sql = sql + ", BK_AT = " + actauthor.value.AT_ID
@@ -361,51 +382,74 @@
   //   }
   // }
 
-  async function newAuthor() {
-    console.log("refMyDialogNewAuthor.value.fieldTextValue: ", refMyDialogNewAuthor.value.fieldTextValue)
-    const txt = ref("")
-    snackbarColor.value = "red"
-    try {
-      // const res = await axios("setData.php?cat=INSAT&name=" + refMyDialogNewAuthor.value.fieldTextValue)
-      const res = await axios.post('/add/AT', { name: refMyDialogNewAuthor.value.fieldTextValue })
-      console.log(res)
-      if (res && res.status == "200") {
-        txt.value = 'A szerző felvitele sikeresen megtörtént!'
-        snackbarColor.value = "green"
-        await fetchData('AT')
-      } else {
-        txt.value = "Hiba történt a szerző felvitele közben!"
-      }
-    } catch (error) {
-      console.log(error.response)
-      txt.value = "Hiba történt a szerző felvitele közben!"
-    }
-    snackbarTitle.value = txt.value
-    isSnackbarActive.value = true
-    setTimeout(() => { isSnackbarActive.value = false }, 2000)
+  // async function newAuthor() {
+  //   console.log("refMyDialogNewAuthor.value.fieldTextValue: ", refMyDialogNewAuthor.value.fieldTextValue)
+  //   const txt = ref("")
+  //   snackbarColor.value = "red"
+  //   try {
+  //     // const res = await axios("setData.php?cat=INSAT&name=" + refMyDialogNewAuthor.value.fieldTextValue)
+  //     const res = await axios.post('/add/AT', { name: refMyDialogNewAuthor.value.fieldTextValue })
+  //     console.log(res)
+  //     if (res && res.status == "200") {
+  //       txt.value = 'A szerző felvitele sikeresen megtörtént!'
+  //       snackbarColor.value = "green"
+  //       await fetchData('AT')
+  //     } else {
+  //       txt.value = "Hiba történt a szerző felvitele közben!"
+  //     }
+  //   } catch (error) {
+  //     console.log(error.response)
+  //     txt.value = "Hiba történt a szerző felvitele közben!"
+  //   }
+  //   snackbarTitle.value = txt.value
+  //   isSnackbarActive.value = true
+  //   setTimeout(() => { isSnackbarActive.value = false }, 2000)
+  // }
+
+  // async function newPublisher() {
+  //   const txt = ref("")
+  //   snackbarColor.value = "red"
+  //   try {
+  //     // const res = await axios("setData.php?cat=INSPS&name=" + refMyDialogNewPublisher.value.fieldTextValue)
+  //     const res = await axios.post('/add/PS', { name: refMyDialogNewPublisher.value.fieldTextValue })
+  //     console.log(res)
+  //     if (res && res.status == "200") {
+  //       txt.value = 'A kiadó felvitele sikeresen megtörtént!'
+  //       snackbarColor.value = "green"
+  //       await fetchData('PS')
+  //     } else {
+  //       txt.value = "Hiba történt a kiadó felvitele közben!"
+  //     }
+  //   } catch (error) {
+  //     console.log(error.response)
+  //     txt.value = "Hiba történt a kiadó felvitele közben!"
+  //   }
+  //   snackbarTitle.value = txt.value
+  //   isSnackbarActive.value = true
+  //   setTimeout(() => { isSnackbarActive.value = false }, 2000)
+  // }
+
+  function toggleReaded() {
+    if (readstatus.value === 'P') readstatus.value = 'Y'
+    else if (readstatus.value === 'Y') readstatus.value = 'N'
+    else readstatus.value = 'P'
+    readedIcon.value = readedIcon.value === 'mdi-book-open-page-variant-outline' ? 'fa-regular fa-calendar-check' : (readedIcon.value === 'fa-regular fa-calendar-check' ? 'fa fa-book' : 'mdi-book-open-page-variant-outline')
+    currentIndex.value = (currentIndex.value + 1) % readedIcons.length
   }
 
-  async function newPublisher() {
-    const txt = ref("")
-    snackbarColor.value = "red"
-    try {
-      // const res = await axios("setData.php?cat=INSPS&name=" + refMyDialogNewPublisher.value.fieldTextValue)
-      const res = await axios.post('/add/PS', { name: refMyDialogNewPublisher.value.fieldTextValue })
-      console.log(res)
-      if (res && res.status == "200") {
-        txt.value = 'A kiadó felvitele sikeresen megtörtént!'
-        snackbarColor.value = "green"
-        await fetchData('PS')
-      } else {
-        txt.value = "Hiba történt a kiadó felvitele közben!"
+  async function saveItem(action, myDialog) {
+    await setItem({
+      action,
+      myDialog,
+      selectedItem,
+      cat: newCat.value,
+      fetchData,
+      snackbarState: {
+        color: snackbarColor,
+        message: snackbarTitle,
+        active: isSnackbarActive
       }
-    } catch (error) {
-      console.log(error.response)
-      txt.value = "Hiba történt a kiadó felvitele közben!"
-    }
-    snackbarTitle.value = txt.value
-    isSnackbarActive.value = true
-    setTimeout(() => { isSnackbarActive.value = false }, 2000)
+    })
   }
 
 </script>
@@ -443,7 +487,7 @@
                   @update:modelValue = " errorMsgTitle = '' "
                 ></v-text-field>
               </v-col>    
-              <v-col cols="1" style="padding: 10px 0px 0px 0px">
+              <!-- <v-col cols="1" style="padding: 10px 0px 0px 0px">
                 <v-switch
                   class="text-center grey d-flex flex-column align-center justify-center"
                   v-model="readstatus"
@@ -453,16 +497,56 @@
                   false-value="N"
                   :readonly = " disabled "
                 ></v-switch>
-              </v-col>
-              <v-col cols="1" style="padding: 15px 0px 0px 0px">
+              </v-col> -->
+              <v-col cols="1" style="padding: 18px 0px 0px 20px">
                 <v-card class="text-center grey d-flex flex-column align-center justify-center" height="50%" width="50%">
-                  <div v-if="readstatus == 'Y'">       
+                  <!-- <template v-slot:readed="{ readstatus }"> -->
+                    <!-- :icon="readstatus === 'Y' ? 'fa-regular fa-calendar-check' : (readstatus === 'P' ? 'mdi-book-open-page-variant-outline' : 'fa fa-book')" -->
+                    <v-btn
+                      :color="readstatus === 'Y' ? 'green' : (readstatus === 'P' ? 'red' : 'grey')"
+                      icon
+                      @click="toggleReaded()"
+                      class="ma-0"
+                      rounded
+                      :disabled = "disabled"
+                    >
+                      <!-- <v-icon v-if="readstatus === 'Y' ? 'fa-regular fa-calendar-check' : (readstatus === 'P' ? 'mdi-book-open-page-variant-outline' : 'fa fa-book')"></v-icon> -->
+                       <v-icon>{{ readedIcon }}</v-icon>
+                    </v-btn>
+                    <v-tooltip activator="parent" location="end" :text="readstatus === 'P' ? 'Olvasás alatt' : (readstatus === 'Y' ? 'Elolvasott' : 'Olvasásra vár')"/>
+                  <!-- </template> -->
+                  <!-- <div v-if="readstatus == 'Y'">       
                     <v-icon icon="fa fa-book"></v-icon>
+                    <v-tooltip activator="parent" location="bottom" text="Elolvasott"/>
                   </div>
                   <div v-else>       
                     <v-icon icon="mdi-book-open-page-variant-outline"></v-icon>
-                  </div>
+                    <v-tooltip activator="parent" location="bottom" text="Olvasásra vár"/>
+                  </div> -->
                 </v-card>
+              </v-col>
+              <v-col cols="2">
+                <MyDialog 
+                  v-model:p_visible="isNewDialog"
+                  ref = "myNewDialog"
+                  :p_defvalue = "''"
+                  p_type="brown"
+                  :p_headerTitle = newtitle
+                  p_colpadding = "padding: 0px 7px 0px 0px"
+                  p_color = "black"
+                  p_variant="tonal"
+                  :p_textFieldLabel = titlevalue
+                  p_required = " true "
+                  p_action = "add"
+                  @save = "saveItem('add', myNewDialog)"
+                  :p_autocomplete = "newCat == 'AT'"
+                  p_acDefaultValue = ""
+                  p_acLabel = "Nemzetiség"
+                  :p_acItems = nationality
+                  p_acKey = "NN_ID"
+                  p_acTitle = "NN_NATIONALITY"
+                  p_acValue = "NN_ID"
+                />
               </v-col>
               <v-col cols="4">  
                 <v-autocomplete
@@ -487,7 +571,12 @@
                   @update:modelValue = " actauthor != '' || actauthor != null || actauthor != undefined ? errorMsgAuthor = '' : null"
                 ></v-autocomplete>
               </v-col>
-              <MyDialog ref = "refMyDialogNewAuthor"
+              <v-btn icon style="margin-top: 12px;" @click="setMetaByCat('AT');newCat = 'AT';isNewDialog = true">
+                <v-icon>fa fa-pencil</v-icon>
+                <v-tooltip activator = "parent" text = "Új szerző" location = "left" />
+              </v-btn>
+
+              <!-- <MyDialog ref = "refMyDialogNewAuthor"
                 p_type="brown"
                 p_icon = "fa fa-pencil"
                 p_headerTitle = "Új szerző felvitele" 
@@ -497,8 +586,10 @@
                 @close = "newAuthor()"
                 :p_disabled = " disabled "
                 p_required = " true "
-                p_color="black"
-              />
+                p_color="antiquewhite"
+                p_tooltipText = "Új szerző"
+                p_tooltipLocation = "bottom"
+              /> -->
               <v-col cols="2">              
                 <v-autocomplete         
                   style="min-width: 150px;"
@@ -506,7 +597,7 @@
                   :clearable = "!disabled"
                   label="Műfaj"
                   :items="category"
-                  :key="AT_ID"
+                  :key="CG_ID"
                   item-title="CG_CATEGORY"
                   item-value="CG_ID"
                   variant="solo-filled"
@@ -521,6 +612,10 @@
                   @update:modelValue = " errorMsgCategory = '' "
                 ></v-autocomplete>
               </v-col>
+              <v-btn icon style="margin-top: 12px;" @click="setMetaByCat('CG');newCat = 'CG';isNewDialog = true">
+                <v-icon>fa fa-pencil</v-icon>
+                <v-tooltip activator = "parent" text = "Új műfaj" location = "left" />
+              </v-btn>              
               <v-col cols="3">  
                 <v-autocomplete
                   style="min-width: 150px;"
@@ -543,6 +638,10 @@
                   @update:modelValue = " errorMsgBooktype = '' "
                 ></v-autocomplete>
               </v-col>
+              <v-btn icon style="margin-top: 12px;" @click="setMetaByCat('BT');newCat = 'BT';isNewDialog = true">
+                <v-icon>fa fa-pencil</v-icon>
+                <v-tooltip activator = "parent" text = "Új kategória" location = "left" />
+              </v-btn>
               <v-col cols="3">  
                 <v-autocomplete
                   style="min-width: 150px;"
@@ -559,6 +658,10 @@
                   density="compact"
                 ></v-autocomplete>
               </v-col>
+              <v-btn icon style="margin-top: 12px;" @click="setMetaByCat('OS');newCat = 'OS';isNewDialog = true">
+                <v-icon>fa fa-pencil</v-icon>
+                <v-tooltip activator = "parent" text = "Új státusz" location = "left" />
+              </v-btn>
               <v-col cols="3">  
                 <v-autocomplete
                   style="min-width: 150px;"
@@ -575,7 +678,11 @@
                   density="compact"
                 ></v-autocomplete>
               </v-col>
-              <MyDialog ref = "refMyDialogNewPublisher"
+              <v-btn icon style="margin-top: 12px;" @click="setMetaByCat('PS');newCat = 'PS';isNewDialog = true">
+                <v-icon>fa fa-pencil</v-icon>
+                <v-tooltip activator = "parent" text = "Új kiadó" location = "left" />
+              </v-btn>
+              <!-- <MyDialog ref = "refMyDialogNewPublisher"
                 p_type="brown"
                 p_icon = "fa fa-pencil"
                 p_headerTitle = "Új kiadó felvitele" 
@@ -586,7 +693,9 @@
                 :p_disabled = " disabled "
                 p_required = " true "
                 p_color="antiquewhite"
-              />
+                p_tooltipText = "Új kiadó"
+                p_tooltipLocation = "bottom"
+              /> -->
               <v-col cols="2">  
                 <v-text-field
                   v-model="yop"
@@ -599,6 +708,7 @@
               </v-col>
               <v-col cols="2">  
                 <v-rating
+                  style="padding-left: 30px;"
                   class="mt-3"
                   v-model="rating"
                   half-increments

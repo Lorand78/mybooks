@@ -2,7 +2,7 @@ import { ref, computed } from 'vue'
 
 export const loggedIn = ref(false)
 export const user = ref("")
-export const collapsed = ref(true)
+export const collapsed = ref(false)
 export const toggleSidebar = () => (collapsed.value = !collapsed.value)
 
 export const SIDEBAR_WIDTH = 200

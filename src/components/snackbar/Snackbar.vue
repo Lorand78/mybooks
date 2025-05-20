@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, ref } from "vue";
+import { ref } from "vue";
 
 const props = defineProps({
   p_activate: { type: Boolean, default: true },
@@ -16,6 +16,14 @@ console.log("snackbar: " + snackbar.value)
 
 </script>
 
+<style scoped>
+.centered-snackbar {
+  display: flex;
+  justify-content: center;
+  /* text-align: center; */
+}
+</style>
+
 <template>
   <!-- v-if="snackbar=='true'" -->
   <v-snackbar v-model="snackbar"
@@ -23,7 +31,9 @@ console.log("snackbar: " + snackbar.value)
     :color = "( p_color )"
     :rounded = "( p_rounded )"
     :location = "( p_location )"
+    class = "centered-snackbar"
     >
     {{ p_title }}
   </v-snackbar>
 </template>
+

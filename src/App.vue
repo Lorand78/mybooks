@@ -14,7 +14,7 @@ import Sidebar from "@/components/sidebar/Sidebar.vue";
             <!-- <v-col cols="2"></v-col> -->
           <!-- <div :style="{'margin-left': sidebarWidth}"> -->
             <!-- <v-col cols="6"> -->
-              <router-view to="/home"/>
+              <router-view :key = "$route.fullPath" to="/home"/>
             <!-- </v-col> -->
           <!-- </v-row> -->
         </v-container>

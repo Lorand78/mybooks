@@ -42,9 +42,11 @@
 
       <!-- to="/..... az index.js-ben van konfigurálva" -->
       <SidebarLink v-if="loggedIn" to="/" icon="fas fa-home" title="Fő oldal">Fő oldal</SidebarLink>
-      <!-- <SidebarLink to="/book/readonly" icon="fas fa-pen-to-square" title="Módosítás">Módosítás</SidebarLink> -->
-      <!-- <SidebarLink to="/analytics" icon="fas fa-left-right" title="Kölcsönzés - Kivezetés">Kölcsönzés - Kivezetés</SidebarLink> -->
-      <!-- <SidebarLink to="/friends" icon="fas fa-magnifying-glass" title="Keresés">Keresés</SidebarLink> -->
+      <SidebarLink v-if="loggedIn" to="/management/AT" icon="fa-regular fa-pen-to-square" title="Szerző karbantartása">Szerző karbantartása</SidebarLink>
+      <SidebarLink v-if="loggedIn" to="/management/CG" icon="fa-solid fa-list" title="Műfaj karbantartása">Műfaj karbantartása</SidebarLink>
+      <SidebarLink v-if="loggedIn" to="/management/BT" icon="fa-solid fa-book-skull" title="Kategória karbantartása">Kategória karbantartása</SidebarLink>
+      <SidebarLink v-if="loggedIn" to="/management/OS" icon="fa-solid fa-building-columns" title="Státusz karbantartása">Státusz karbantartása</SidebarLink>
+      <SidebarLink v-if="loggedIn" to="/management/PS" icon="fa-solid fa-bullhorn" title="Kiadó karbantartása">Kiadó karbantartása</SidebarLink>
       <SidebarLink v-if="!loggedIn" to="/Login" icon="fas fa-unlock" title="Bejelentkezés">Bejelentkezés</SidebarLink>
       <SidebarLink v-if="loggedIn" to="/Login" icon="fas fa-lock" title="Kijelentkezés" @click="Logout()">Kijelentkezés</SidebarLink>
 

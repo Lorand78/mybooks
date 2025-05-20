@@ -31,6 +31,7 @@ export const category = ref(null)
 export const booktype = ref(null)
 export const osstatus = ref(null)
 export const publisher = ref(null)
+export const nationality = ref(null)
 
 export const fetchData = async (cat) => {
   // console.log("route: ", route.currentRoute.value.params.type)
@@ -63,6 +64,10 @@ export const fetchData = async (cat) => {
       case 'PS': 
         publisher.value = response.data
         console.log("publisher: ", publisher)
+        break
+      case 'NN': 
+        nationality.value = response.data
+        console.log("nationality: ", nationality)
         break
       // default:
       //   title.value = response.data[0].BK_BOOKTITLE   
@@ -97,6 +102,7 @@ export const fetchDefaultDatas = async () => {
     await fetchData('BT')
     await fetchData('OS')
     await fetchData('PS')
+    await fetchData('NN')
     firstLoad.value = false
   }
 }
