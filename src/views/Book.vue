@@ -498,7 +498,7 @@
                   :readonly = " disabled "
                 ></v-switch>
               </v-col> -->
-              <v-col cols="1" style="padding: 18px 0px 0px 20px">
+              <v-col cols="1" style="padding: 18px 0px 0px 0px">
                 <v-card class="text-center grey d-flex flex-column align-center justify-center" height="50%" width="50%">
                   <!-- <template v-slot:readed="{ readstatus }"> -->
                     <!-- :icon="readstatus === 'Y' ? 'fa-regular fa-calendar-check' : (readstatus === 'P' ? 'mdi-book-open-page-variant-outline' : 'fa fa-book')" -->
@@ -708,7 +708,7 @@
               </v-col>
               <v-col cols="2">  
                 <v-rating
-                  style="padding-left: 30px;"
+                  style="padding-left: 10px;"
                   class="mt-3"
                   v-model="rating"
                   half-increments

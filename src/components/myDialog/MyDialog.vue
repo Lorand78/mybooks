@@ -145,6 +145,7 @@ function onClose(resVal) {
             v-bind="props"
             :disabled = "p_disabled"
             :prepend-icon = "p_prependicon"
+            style="margin: 0px 10px 0px 10px; padding: 0px 20px 0px 20px;"                        
           >
             <v-icon v-if="p_icon">{{ p_icon }}</v-icon>
             <v-tooltip v-if="p_tooltipText != ''"

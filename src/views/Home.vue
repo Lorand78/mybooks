@@ -209,11 +209,11 @@
                         elevation="10"            
                       ></v-text-field>
                     </v-col>
-                    <v-col cols="3"></v-col>                  
-                    <v-col cols="2">
+                    <v-col cols="2"></v-col>                  
+                    <v-col cols="3">
                       <v-btn 
                         v-model="newBookBtn"
-                        style="margin: 30px 10px 0px 10px"
+                        style="margin: 30px 10px 0px 10px; padding: 0px 20px 0px 20px;"                        
                         prepend-icon="fas fa-square-plus"
                         rounded="lg"
                         elevation="10"            
@@ -222,16 +222,17 @@
                       >Új Könyv
                       </v-btn>
                     </v-col>
-                    <v-col cols="1">
+                    <v-col cols="1" style="padding-right: 20px;">
                       <v-btn 
                         v-model="exportXlsxBtn"
-                        style="margin: 30px 0px 0px 0px;"
-                        prepend-icon="mdi-export"
-                        rounded="lg"
+                        icon
+                        style="margin: 30px 0px 0px 0px;height: 36px;"                        
                         elevation="10"            
+                        rounded="lg"
                         variant="tonal"
                         @click="exportXlsxBtnClick()"
                       >
+                        <v-icon>mdi-export</v-icon>
                       </v-btn>
                     </v-col>
                     <!-- <v-col cols="2">
