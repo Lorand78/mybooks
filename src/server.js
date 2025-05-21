@@ -1,7 +1,6 @@
 import express, { json } from 'express';
 import cors from 'cors';  // CORS csomag importálása
 import { createConnection } from 'mysql2';
-import { id } from 'vuetify/locale';
 const app = express();
 const port = 3000;
 
