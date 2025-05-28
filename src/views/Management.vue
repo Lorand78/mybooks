@@ -9,7 +9,7 @@
   import SnackBar from '../components/snackbar/Snackbar.vue'
   import * as xlsx from '../../node_modules/xlsx/xlsx.mjs';
   import { title } from 'process';
-  import { nationality } from '../main';
+  import { fetchData, nationality } from '../main';
   import { useManagementUtils } from '@/utils/useManagementUtils'
 
   const route = useRouter()
@@ -42,7 +42,7 @@
     setMetaByCat, setItem
   } = useManagementUtils()
 
-  const fetchData = async (cat) => {
+  const localFetchData = async (cat) => {
     loading.value = true
     try {
       // console.log('https://myownbooks.000webhostapp.com/getData.php?cat='+cat)
@@ -61,7 +61,7 @@
     console.log('onMounted, cat: ', route.currentRoute.value.params.type)
     if ( loggedIn.value == true ) {
       setMetaByCat(route.currentRoute.value.params.type)
-      await fetchData(cat)
+      await localFetchData(cat)
     }
     console.log('onMounted után')
     // console.log("data: ", data.value.data[0])
