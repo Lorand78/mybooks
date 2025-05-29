@@ -1,6 +1,7 @@
 // src/composables/useManagementUtils.js
 import { ref } from 'vue'
 import axios from 'axios'
+// import { fetchedData } from '../main'
 
 export function useManagementUtils() {
   const titlevalue = ref('')
@@ -12,6 +13,7 @@ export function useManagementUtils() {
   const deletetitle = ref('')
   const xlsxFilename = ref('')
   const xlsxSheetname = ref('')
+  const resultData = ref('')
 
   function setMetaByCat(cat) {
     switch (cat) {
@@ -81,7 +83,6 @@ export function useManagementUtils() {
     snackbarState.color.value = 'red'
 
     try {
-      console.log('myDialog: ', myDialog)
       const res = await axios.post(`/${action}/${cat}`, {
         name: myDialog.fieldTextValue,
         id: action === 'add' ? -1 : selectedItem?.value?.[keyID.value],
@@ -90,18 +91,22 @@ export function useManagementUtils() {
           : null
       })
 
+      console.log('myDialog res: ', res)
       if (res?.status == 200) {
         txt.value = `A ${titlevalue.value.toLowerCase()} ${actiontxt} sikeresen megtörtént!`
         snackbarState.color.value = 'green'
-        await fetchData(cat)
-      } else {
-        txt.value = `Hiba történt a ${titlevalue.value.toLowerCase()} ${actiontxt} közben!`
+        resultData.value = await fetchData(cat)
+        console.log('resultData setitem: ', resultData)
       }
     } catch (error) {
       console.error('Hiba:', error)
-      txt.value = error?.response?.status === 400
-        ? 'Nem törölhető, mert van hozzárendelve könyv!'
-        : `Hiba történt a ${titlevalue.value.toLowerCase()} ${actiontxt} közben!`
+      if (error?.response?.status === 409) {
+          txt.value = `Ez a ${titlevalue.value.toLowerCase()} már létezik!`
+      } else {
+        txt.value = error?.response?.status === 400
+          ? 'Nem törölhető, mert van hozzárendelve könyv!'
+          : `Hiba történt a ${titlevalue.value.toLowerCase()} ${actiontxt} közben!`
+      }
     }
 
     snackbarState.message.value = txt.value
@@ -112,7 +117,7 @@ export function useManagementUtils() {
   }
 
   return {
-    titlevalue, keyvalue, keyID, acKeyID, newtitle, modifytitle, deletetitle, xlsxFilename, xlsxSheetname,
+    titlevalue, keyvalue, keyID, acKeyID, newtitle, modifytitle, deletetitle, xlsxFilename, xlsxSheetname, resultData,
     setMetaByCat, setItem
   }
 }

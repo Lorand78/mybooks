@@ -26,6 +26,7 @@ console.log('main firstLoad: ', firstLoad.value)
 // if (!author) {
 //   const author = ref(null)
 // }
+// export const fetchedData = ref(null)
 export const author = ref(null)
 export const category = ref(null)
 export const booktype = ref(null)
@@ -43,31 +44,26 @@ export const fetchData = async (cat) => {
     // const response = await axios('getData.php?cat='+cat)///?id=1')
     const response = await axios.get('/api/data/' + cat + '/-1/NULL')      
     console.log('response: ', response.data)
-
+    // fetchedData.value = response.data
+    // console.log('fetcedData: ', fetchedData.value)
     switch (cat) {
       case 'AT': 
         author.value = response.data
-        console.log("author: " + author)
         break
       case 'CG': 
         category.value = response.data
-        console.log("category: " + category)
         break
       case 'BT': 
         booktype.value = response.data
-        console.log(" booktype: " + booktype)
         break
       case 'OS': 
         osstatus.value = response.data
-        console.log("osstatus: ", osstatus)
         break
       case 'PS': 
         publisher.value = response.data
-        console.log("publisher: ", publisher)
         break
       case 'NN': 
         nationality.value = response.data
-        console.log("nationality: ", nationality)
         break
       // default:
       //   title.value = response.data[0].BK_BOOKTITLE   
@@ -81,6 +77,7 @@ export const fetchData = async (cat) => {
       //   rating.value = response.data[0].BK_RATE
       //   description.value = response.data[0].BK_DESCRIPTION
     }
+    return response.data
     // response.data.forEach(e => {
     //   console.log(e.AT_AUTHORNAME)
     //   author.push(e)
@@ -89,6 +86,7 @@ export const fetchData = async (cat) => {
     //author.value = response.data
     //console.log(author.value[0].AT_AUTHORNAME)
   } catch (error) {
+    // fetchedData.value = null
     console.log(error.response)
   }
 }

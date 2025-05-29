@@ -20,7 +20,7 @@ console.log("snackbar: " + snackbar.value)
 .centered-snackbar {
   display: flex;
   justify-content: center;
-  /* text-align: center; */
+  align-items: center;
 }
 </style>
 
@@ -32,8 +32,10 @@ console.log("snackbar: " + snackbar.value)
     :rounded = "( p_rounded )"
     :location = "( p_location )"
     class = "centered-snackbar"
-    >
-    {{ p_title }}
+  >
+    <div style="width: 100%; text-align: center;">
+      {{ p_title }}
+    </div>
   </v-snackbar>
 </template>
 

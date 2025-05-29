@@ -38,30 +38,34 @@
   const snackbarColor = ref("green")
 
   const {
-    titlevalue, keyvalue, keyID, newtitle, modifytitle, deletetitle,
+    titlevalue, keyvalue, keyID, newtitle, modifytitle, deletetitle, resultData,
     setMetaByCat, setItem
   } = useManagementUtils()
 
-  const localFetchData = async (cat) => {
-    loading.value = true
-    try {
-      // console.log('https://myownbooks.000webhostapp.com/getData.php?cat='+cat)
-      // const response = await axios('getData.php?cat=' + cat + '&user=' + user.value)
-      const response = await axios.get('/api/data/' + cat + '/-1/' + user.value)      
-      console.log("response: ", response.data)
-      data.value = response.data
-      console.log("data: ", data.value)
-    } catch (error) {
-      console.log("error: ", error.response)
-    }
-    loading.value = false
-  }
+  // const localFetchData = async (cat) => {
+  //   loading.value = true
+  //   try {
+  //     // console.log('https://myownbooks.000webhostapp.com/getData.php?cat='+cat)
+  //     // const response = await axios('getData.php?cat=' + cat + '&user=' + user.value)
+  //     const response = await axios.get('/api/data/' + cat + '/-1/' + user.value)      
+  //     console.log("response: ", response.data)
+  //     data.value = response.data
+  //     console.log("data: ", data.value)
+  //   } catch (error) {
+  //     console.log("error: ", error.response)
+  //   }
+  //   loading.value = false
+  // }
 
   onMounted( async () => {
     console.log('onMounted, cat: ', route.currentRoute.value.params.type)
     if ( loggedIn.value == true ) {
       setMetaByCat(route.currentRoute.value.params.type)
-      await localFetchData(cat)
+      const res = await fetchData(cat)
+      if (res) {
+        data.value = res
+      }
+      console.log('data: ', data)
     }
     console.log('onMounted után')
     // console.log("data: ", data.value.data[0])
@@ -221,6 +225,10 @@
         active: isSnackbarActive
       }
     })
+    console.log('resultData: ', resultData)    
+    if (resultData.value != "") {
+      data.value = resultData.value
+    }
   }
 
 </script>
@@ -246,10 +254,10 @@
                       p_action = "upd"
                       @save = "saveItem('upd', myModifyDialog)"
                       :p_autocomplete = "isAutocomplete"
-                      :p_acDefaultValue = "selectedItem ? selectedItem[acKeyID] : ''"
+                      :p_acDefaultValue = "selectedItem ? selectedItem['NN_NATIONALITY'] : ''"
                       p_acLabel = "Nemzetiség"
                       :p_acItems = nationality
-                      p_acKey = "NN_ID"
+                      :p_acKey = "NN_ID"
                       p_acTitle = "NN_NATIONALITY"
                       p_acValue = "NN_ID"
                       />
@@ -269,6 +277,13 @@
                       p_readonly = " true "
                       p_okBtnName = "Igen"
                       p_cancelBtnName = "Nem"
+                      :p_autocomplete = "isAutocomplete"
+                      :p_acDefaultValue = "selectedItem ? selectedItem['NN_NATIONALITY'] : ''"
+                      p_acLabel = "Nemzetiség"
+                      :p_acItems = nationality
+                      :p_acKey = "NN_ID"
+                      p_acTitle = "NN_NATIONALITY"
+                      p_acValue = "NN_ID"
           />
           <v-card
             rounded="lg"
@@ -341,7 +356,7 @@
                         :p_acDefaultValue = "''"
                         p_acLabel = "Nemzetiség"
                         :p_acItems = nationality
-                        p_acKey = "NN_ID"
+                        :p_acKey = "NN_ID"
                         p_acTitle = "NN_NATIONALITY"
                         p_acValue = "NN_ID"
                       />

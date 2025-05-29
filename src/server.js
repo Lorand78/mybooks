@@ -140,36 +140,54 @@ app.post('/book', (req, res) => {
 app.post('/add/:cat', (req, res) => {
   console.log('add post: ', req.body);
   const { name } = req.body; // Az adatok lekérése a kérésből
-  var query = '';
+  var chkquery = '';
+  var query = '';  
   switch (req.params.cat) {
     case 'AT':
+      chkquery = "SELECT COUNT(*) cnt FROM AUTHOR WHERE TRIM(UPPER(AT_AUTHORNAME)) = TRIM(UPPER('" + req.body.name + "'))"
       query = "INSERT INTO AUTHOR (AT_AUTHORNAME, AT_NN_ID) VALUES ('" + req.body.name + "', " + req.body.nationalityid + ")"
       break
     case 'CG':
+      chkquery = "SELECT COUNT(*) cnt FROM CATEGORY WHERE TRIM(UPPER(CG_CATEGORY)) = TRIM(UPPER('" + req.body.name + "'))"
       query = "INSERT INTO CATEGORY (CG_CATEGORY) VALUES ('" + req.body.name + "')"      
       break
     case 'BT':
+      chkquery = "SELECT COUNT(*) cnt FROM BOOKTYPE WHERE TRIM(UPPER(BT_TYPENAME)) = TRIM(UPPER('" + req.body.name + "'))"
       query = "INSERT INTO BOOKTYPE (BT_TYPENAME) VALUES ('" + req.body.name + "')"   
       break
     case 'OS':
+      chkquery = "SELECT COUNT(*) cnt FROM OWNERSHIP_STATUS WHERE TRIM(UPPER(OS_NAME)) = TRIM(UPPER('" + req.body.name + "'))"
       query = "INSERT INTO OWNERSHIP_STATUS (OS_NAME) VALUES ('" + req.body.name + "')"
       break
     case 'PS':
+      chkquery = "SELECT COUNT(*) cnt FROM PUBLISHER WHERE TRIM(UPPER(PS_PUBLISHERNAME)) = TRIM(UPPER('" + req.body.name + "'))"
       query = "INSERT INTO PUBLISHER (PS_PUBLISHERNAME) VALUES ('" + req.body.name + "')"
       break
                       
     default:
       break
   }
-  console.log("add query: ", query)
-
-  connection.query(query, [name], (err, result) => {
-      if (err) {
-          console.error('Hiba az adatok beillesztésekor:', err);
-          res.status(500).json({ error: 'Adatbeillesztési hiba.' });
+  console.log("add chkquery: ", chkquery)
+  connection.query(chkquery, [name], (err, result) => {
+    if (err) {
+        console.error('Hiba az adatok beillesztésekor:', err);
+        res.status(500).json({ error: 'Adatbeillesztési hiba.' });
+    } else {
+      console.log('result: ', result[0].cnt)
+      if (result[0].cnt > 0) {
+        res.status(409).json({ error: 'Már létezik az elem', userId: result.insertId });
       } else {
-          res.status(200).json({ message: 'Sikeresen hozzáadva!', userId: result.insertId });
+        console.log("add query: ", query)
+        connection.query(query, [name], (err, result) => {
+            if (err) {
+                console.error('Hiba az adatok beillesztésekor:', err);
+                res.status(500).json({ error: 'Adatbeillesztési hiba.' });
+            } else {
+                res.status(200).json({ message: 'Sikeresen hozzáadva!', userId: result.insertId });
+            }
+        });
       }
+    }
   });
 });
 
@@ -178,37 +196,55 @@ app.post('/upd/:cat', (req, res) => {
   console.log('upd post: ', req.body);
   const { name } = req.body; // Az adatok lekérése a kérésből
   console.log("name: ", req.body.name)
+  var chkquery = '';
   var query = '';
   var nationalitytxt = ''
   switch (req.params.cat) {
     case 'AT':
       req.body.nationalityid ? nationalitytxt = ', AT_NN_ID = ' + req.body.nationalityid : null
+      chkquery = "SELECT COUNT(*) cnt FROM AUTHOR WHERE TRIM(UPPER(AT_AUTHORNAME)) = TRIM(UPPER('" + req.body.name + "')) AND AT_ID != " + req.body.id
       query = "UPDATE AUTHOR SET AT_AUTHORNAME = '" + req.body.name + "'" + nationalitytxt + ' WHERE AT_ID = ' + req.body.id;
       break
     case 'CG':
+      chkquery = "SELECT COUNT(*) cnt FROM CATEGORY WHERE TRIM(UPPER(CG_CATEGORY)) = TRIM(UPPER('" + req.body.name + "')) AND CG_ID != " + req.body.id
       query = "UPDATE CATEGORY SET CG_CATEGORY = '" + req.body.name + "'" + ' WHERE CG_ID = ' + req.body.id;      
       break
     case 'BT':
+      chkquery = "SELECT COUNT(*) cnt FROM BOOKTYPE WHERE TRIM(UPPER(BT_TYPENAME)) = TRIM(UPPER('" + req.body.name + "')) AND BT_ID != " + req.body.id
       query = "UPDATE BOOKTYPE SET BT_TYPENAME = '" + req.body.name + "'" + ' WHERE BT_ID = ' + req.body.id;      
       break
     case 'OS':
+      chkquery = "SELECT COUNT(*) cnt FROM OWNERSHIP_STATUS WHERE TRIM(UPPER(OS_NAME)) = TRIM(UPPER('" + req.body.name + "')) AND OS_ID != " + req.body.id
       query = "UPDATE OWNERSHIP_STATUS SET OS_NAME = '" + req.body.name + "'" + ' WHERE OS_ID = ' + req.body.id;
       break
     case 'PS':
+      chkquery = "SELECT COUNT(*) cnt FROM PUBLISHER WHERE TRIM(UPPER(PS_PUBLISHERNAME)) = TRIM(UPPER('" + req.body.name + "')) AND PS_ID != " + req.body.id
       query = "UPDATE PUBLISHER SET PS_PUBLISHERNAME = '" + req.body.name + "'" + ' WHERE PS_ID = ' + req.body.id;
       break
                       
     default:
       break
   }
-  console.log("query: ", query)
-  connection.query(query, [name], (err, result) => {
-      if (err) {
-          console.error('Hiba az adatok beillesztésekor:', err);
-          res.status(500).json({ error: 'Adatbeillesztési hiba.' });
+  connection.query(chkquery, [name], (err, result) => {
+    if (err) {
+        console.error('Hiba az adatok beillesztésekor:', err);
+        res.status(500).json({ error: 'Adatbeillesztési hiba.' });
+    } else {
+      console.log('result: ', result[0].cnt)
+      if (result[0].cnt > 0) {
+        res.status(409).json({ error: 'Már létezik az elem', userId: result.insertId });
       } else {
-          res.status(200).json({ message: 'Sikeresen hozzáadva!', userId: result.insertId });
+        console.log("query: ", query)
+        connection.query(query, [name], (err, result) => {
+            if (err) {
+                console.error('Hiba az adatok beillesztésekor:', err);
+                res.status(500).json({ error: 'Adatbeillesztési hiba.' });
+            } else {
+                res.status(200).json({ message: 'Sikeresen hozzáadva!', userId: result.insertId });
+            }
+        });
       }
+    }
   });
 });
 
