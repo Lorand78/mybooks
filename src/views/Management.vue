@@ -1,6 +1,6 @@
 <script setup>
   console.log("Karbantartás!!!")
-  import { onMounted, ref, nextTick } from 'vue'
+  import { onMounted, ref, nextTick, watch } from 'vue'
   import { VDataTable } from 'vuetify/labs/VDataTable'
   import axios from 'axios'
   import { useRouter } from "vue-router";
@@ -33,9 +33,11 @@
   const selectedItem = ref(null)
   const isModifyDialog = ref(false)
   const isDeleteDialog = ref(false)
+  const isAuthorInfo = ref(false)
   const isSnackbarActive = ref(false)
   const snackbarTitle = ref(null)
   const snackbarColor = ref("green")
+  const booksForAuthor = ref(null)
 
   const {
     titlevalue, keyvalue, keyID, newtitle, modifytitle, deletetitle, resultData,
@@ -204,12 +206,31 @@
     window.scrollTo(0,0)
   }
 
-  function openDialog( item, action ) {
+  async function fetchBookData() {
+    try {
+      console.log('fetchBookData - selectedItem: ', selectedItem.value.AT_ID)
+      booksForAuthor.value = await axios.get('/api/data/books/' + selectedItem.value.AT_ID)      
+      console.log('booksForAuthor: ', booksForAuthor.value.data[0].cnt)
+    } catch (error) {
+      console.log(error.response)
+    }
+  }
+
+  function openModifyDialog( item ) {
+    selectedItem.value = item
+    nextTick(() => {
+      isModifyDialog.value = true
+    })
+  }
+
+  async function openDialog( item, action ) {
+    console.log("item: ", item)
     selectedItem.value = item
     console.log("selectedItem: ", selectedItem.value)
-    nextTick(() => {
-      action == 'upd' ? isModifyDialog.value = true : isDeleteDialog.value = true
-    })  
+    if (action == 'info') {
+      await fetchBookData()
+    }
+    action == 'del' ? isDeleteDialog.value = true : isAuthorInfo.value = true
   }
 
   async function saveItem(action, myDialog) {
@@ -277,14 +298,29 @@
                       p_readonly = " true "
                       p_okBtnName = "Igen"
                       p_cancelBtnName = "Nem"
-                      :p_autocomplete = "isAutocomplete"
-                      :p_acDefaultValue = "selectedItem ? selectedItem['NN_NATIONALITY'] : ''"
-                      p_acLabel = "Nemzetiség"
-                      :p_acItems = nationality
-                      :p_acKey = "NN_ID"
-                      p_acTitle = "NN_NATIONALITY"
-                      p_acValue = "NN_ID"
           />
+          <v-dialog v-model="isAuthorInfo">
+            <template #default>
+              <v-card
+                class="mx-auto"
+                rounded="lg"
+                elevation="16"
+                color = "#e3d19f"
+                width = "400"
+              >
+                <v-card-title class="text-h6 font-weight-bold">
+                  {{ selectedItem?.AT_AUTHORNAME }} ({{ booksForAuthor?.data?.[0]?.cnt || 0 }} könyv)
+                </v-card-title>
+                <v-card-text
+                  style = "padding: 10px 10px 0px 25px"
+                  v-for = "(book, index) in booksForAuthor.data" 
+                  :key = "index" 
+                >
+                  {{ book.BK_BOOKTITLE }}
+                </v-card-text>
+              </v-card>
+            </template>
+          </v-dialog>
           <v-card
             rounded="lg"
             style="padding: 15px; background-color: antiquewhite;"
@@ -391,7 +427,7 @@
                     variant="tonal"
                     size="x-small"
                     color="black"                    
-                    @click="openDialog(item, 'upd')"
+                    @click="openModifyDialog(item)"
                   >
                     <v-icon>fa fa-pen-to-square</v-icon>
                     <v-tooltip 
@@ -402,6 +438,7 @@
                   </v-btn>
                   <v-btn
                     icon
+                    style="margin-right: 10px;"
                     variant="tonal"
                     size="x-small"
                     color="black"
@@ -411,6 +448,20 @@
                     <v-tooltip 
                       activator = "parent"
                       text = "Törlés" 
+                      :location = "cat === 'AT' ? 'bottom' : 'right'" 
+                    />
+                  </v-btn>
+                  <v-btn v-if="cat === 'AT'"
+                    icon
+                    variant="tonal"
+                    size="x-small"
+                    color="black"
+                    @click="openDialog(item, 'info')"
+                  >
+                    <v-icon>fas fa-info-circle</v-icon>
+                    <v-tooltip 
+                      activator = "parent"
+                      text = "Szerzőhöz tartozó könyvek litája" 
                       location = "right" 
                     />
                   </v-btn>

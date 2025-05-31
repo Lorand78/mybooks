@@ -460,7 +460,7 @@
       <SnackBar v-if="isSnackbarActive==true" :p_title="snackbarTitle" :p_color="snackbarColor" />
       <v-row>
         <v-col cols = 2></v-col>
-        <v-col cols = 8>
+        <v-col cols = 9>
           <v-card
             rounded="lg"
             elevation="16"            
@@ -590,12 +590,13 @@
                 p_tooltipText = "Új szerző"
                 p_tooltipLocation = "bottom"
               /> -->
-              <v-col cols="2">              
+              <v-col cols="3">              
                 <v-autocomplete         
                   style="min-width: 150px;"
                   v-model="actcategory"
                   :clearable = "!disabled"
                   label="Műfaj"
+                  dense
                   :items="category"
                   :key="CG_ID"
                   item-title="CG_CATEGORY"
@@ -754,13 +755,52 @@
             </v-card>
           </v-card>
         </v-col>
-        <v-col cols = 2></v-col>
+        <v-col cols = 1></v-col>
       </v-row>
     </v-container>
   <!-- </v-form>  -->
 </template>
 
 
-v-text-field.disabledback {
-  background-color:red;
+<style>
+/* A legördülő teljes listájának magassága */
+/* ::v-deep(.v-overlay__content.v-autocomplete__content) {
+  max-height: 150px !important;
+  overflow-y: auto !important;
+} */
+
+/* Egyes listaelemek magassága, paddingje */
+/* ::v-deep(.v-autocomplete__content .v-list-item) {
+  min-height: 28px !important;
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
+} */
+
+/* A szövegméret beállítása közvetlenül a title-re */
+/* ::v-deep(.v-list-item-title) {
+  font-size: 0.8rem !important;
+} */
+/* A Vuetify overlay (autocomplete dropdown) maximális magassága */
+.v-overlay__content.v-autocomplete__content {
+  max-height: 150px !important;
+  overflow-y: auto !important;
 }
+
+/* Listaelem magassága és padding */
+.v-autocomplete__content .v-list-item {
+  min-height: 28px !important;
+  padding-top: 2px !important;
+  padding-bottom: 2px !important;
+}
+
+/* A cím (szöveg) mérete a listában */
+.v-list-item-title {
+  font-size: 0.75rem !important;
+  line-height: 1rem !important;
+}
+</style>
+
+<!-- v-text-field.disabledback {
+  background-color:red;
+} -->
+

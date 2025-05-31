@@ -49,40 +49,40 @@ app.get('/api/data/:cat/:id/:user', async (req, res) => {
       if (req.params.id != -1) {
         where = 'WHERE CG_ID = ' + req.params.id;
       }
-      query = 'SELECT * FROM CATEGORY ' + where;
+      query = 'SELECT * FROM CATEGORY ' + where + ' ORDER BY CG_CATEGORY';
       console.log("category: " + query)
       break
     case 'BT': 
       if (req.params.id != -1) {
         where = 'WHERE BT_ID = ' + req.params.id;
       }
-      query = 'SELECT * FROM BOOKTYPE ' + where;
+      query = 'SELECT * FROM BOOKTYPE ' + where + ' ORDER BY BT_TYPENAME';
       console.log(" booktype: " + query)
       break
     case 'OS': 
       if (req.params.id != -1) {
         where = 'WHERE OS_ID = ' + req.params.id;
       }
-      query = 'SELECT * FROM OWNERSHIP_STATUS ' + where;
+      query = 'SELECT * FROM OWNERSHIP_STATUS ' + where + ' ORDER BY OS_NAME';
       console.log("osstatus: ", query)
       break
     case 'PS': 
       if (req.params.id != -1) {
         where = 'WHERE PS_ID = ' + req.params.id;
       }
-      query = 'SELECT * FROM PUBLISHER ' + where;
+      query = 'SELECT * FROM PUBLISHER ' + where + ' ORDER BY PS_PUBLISHERNAME';
       console.log("publisher: ", query)
       break
     case 'NN': 
       if (req.params.id != -1) {
         where = 'WHERE NN_ID = ' + req.params.id;
       }
-      query = 'SELECT * FROM NATIONALITY ' + where;
+      query = 'SELECT * FROM NATIONALITY ' + where + ' ORDER BY NN_NATIONALITY';
       console.log("nationality: ", query)
       break
     case 'BK': 
       if (req.params.id != -1) {
-        query = 'SELECT * FROM `BOOK` WHERE BK_ID =  ' + req.params.id;
+        query = 'SELECT * FROM `BOOK` WHERE BK_ID =  ' + req.params.id + ' ORDER BY BK_BOOKTITLE';
       } 
       else {
         query = 'SELECT BK_ID, BK_BOOKTITLE, BK_READED, BK_DESCRIPTION, AT_AUTHORNAME, BT_TYPENAME, CG_CATEGORY, OS_NAME, PS_PUBLISHERNAME ' +
@@ -92,7 +92,7 @@ app.get('/api/data/:cat/:id/:user', async (req, res) => {
                  'WHERE AT_ID = BK_AT ' +
                    'AND BT_ID = BK_BT ' +
                    'AND CG_ID = BK_CG_ID ' +
-                   'AND BK_USER = "' + req.params.user + '"';
+                   'AND BK_USER = "' + req.params.user + '"' + ' ORDER BY BK_BOOKTITLE';
       }
       console.log("publisher: ", query)
       break
@@ -107,7 +107,20 @@ app.get('/api/data/:cat/:id/:user', async (req, res) => {
     }
   });
 });
-  
+
+//szerzőhöz tartozó könyvek listája
+app.get('/api/data/books/:id', async (req, res) => {
+  var query = 'SELECT BK_BOOKTITLE, (SELECT COUNT(*) FROM BOOK WHERE BK_AT = ' + req.params.id + ') cnt FROM BOOK WHERE BK_AT = ' + req.params.id + ' ORDER BY BK_BOOKTITLE';
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error('Hiba a lekérdezés során:', err);
+      res.status(500).send('Adatbázis hiba');
+    } else {
+      res.json(results);
+    }
+  });
+});
+
 app.get('/api/data/login/US/:username/:password', async (req, res) => {
   const query = 'SELECT * FROM USERS WHERE US_USERNAME = "' + req.params.username + '"' + ' AND US_PASSWORD = SHA2("' + req.params.password + '", 256)'; 
   console.log('query: ' + query);
@@ -145,23 +158,23 @@ app.post('/add/:cat', (req, res) => {
   switch (req.params.cat) {
     case 'AT':
       chkquery = "SELECT COUNT(*) cnt FROM AUTHOR WHERE TRIM(UPPER(AT_AUTHORNAME)) = TRIM(UPPER('" + req.body.name + "'))"
-      query = "INSERT INTO AUTHOR (AT_AUTHORNAME, AT_NN_ID) VALUES ('" + req.body.name + "', " + req.body.nationalityid + ")"
+      query = "INSERT INTO AUTHOR (AT_AUTHORNAME, AT_NN_ID) VALUES (TRIM('" + req.body.name + "'), " + req.body.nationalityid + ")"
       break
     case 'CG':
       chkquery = "SELECT COUNT(*) cnt FROM CATEGORY WHERE TRIM(UPPER(CG_CATEGORY)) = TRIM(UPPER('" + req.body.name + "'))"
-      query = "INSERT INTO CATEGORY (CG_CATEGORY) VALUES ('" + req.body.name + "')"      
+      query = "INSERT INTO CATEGORY (CG_CATEGORY) VALUES (TRIM('" + req.body.name + "'))"      
       break
     case 'BT':
       chkquery = "SELECT COUNT(*) cnt FROM BOOKTYPE WHERE TRIM(UPPER(BT_TYPENAME)) = TRIM(UPPER('" + req.body.name + "'))"
-      query = "INSERT INTO BOOKTYPE (BT_TYPENAME) VALUES ('" + req.body.name + "')"   
+      query = "INSERT INTO BOOKTYPE (BT_TYPENAME) VALUES (TRIM('" + req.body.name + "'))"   
       break
     case 'OS':
       chkquery = "SELECT COUNT(*) cnt FROM OWNERSHIP_STATUS WHERE TRIM(UPPER(OS_NAME)) = TRIM(UPPER('" + req.body.name + "'))"
-      query = "INSERT INTO OWNERSHIP_STATUS (OS_NAME) VALUES ('" + req.body.name + "')"
+      query = "INSERT INTO OWNERSHIP_STATUS (OS_NAME) VALUES (TRIM('" + req.body.name + "'))"
       break
     case 'PS':
       chkquery = "SELECT COUNT(*) cnt FROM PUBLISHER WHERE TRIM(UPPER(PS_PUBLISHERNAME)) = TRIM(UPPER('" + req.body.name + "'))"
-      query = "INSERT INTO PUBLISHER (PS_PUBLISHERNAME) VALUES ('" + req.body.name + "')"
+      query = "INSERT INTO PUBLISHER (PS_PUBLISHERNAME) VALUES (TRIM('" + req.body.name + "'))"
       break
                       
     default:
@@ -203,23 +216,23 @@ app.post('/upd/:cat', (req, res) => {
     case 'AT':
       req.body.nationalityid ? nationalitytxt = ', AT_NN_ID = ' + req.body.nationalityid : null
       chkquery = "SELECT COUNT(*) cnt FROM AUTHOR WHERE TRIM(UPPER(AT_AUTHORNAME)) = TRIM(UPPER('" + req.body.name + "')) AND AT_ID != " + req.body.id
-      query = "UPDATE AUTHOR SET AT_AUTHORNAME = '" + req.body.name + "'" + nationalitytxt + ' WHERE AT_ID = ' + req.body.id;
+      query = "UPDATE AUTHOR SET AT_AUTHORNAME = TRIM('" + req.body.name + "')" + nationalitytxt + ' WHERE AT_ID = ' + req.body.id;
       break
     case 'CG':
       chkquery = "SELECT COUNT(*) cnt FROM CATEGORY WHERE TRIM(UPPER(CG_CATEGORY)) = TRIM(UPPER('" + req.body.name + "')) AND CG_ID != " + req.body.id
-      query = "UPDATE CATEGORY SET CG_CATEGORY = '" + req.body.name + "'" + ' WHERE CG_ID = ' + req.body.id;      
+      query = "UPDATE CATEGORY SET CG_CATEGORY = TRIM('" + req.body.name + "')" + ' WHERE CG_ID = ' + req.body.id;      
       break
     case 'BT':
       chkquery = "SELECT COUNT(*) cnt FROM BOOKTYPE WHERE TRIM(UPPER(BT_TYPENAME)) = TRIM(UPPER('" + req.body.name + "')) AND BT_ID != " + req.body.id
-      query = "UPDATE BOOKTYPE SET BT_TYPENAME = '" + req.body.name + "'" + ' WHERE BT_ID = ' + req.body.id;      
+      query = "UPDATE BOOKTYPE SET BT_TYPENAME = TRIM('" + req.body.name + "')" + ' WHERE BT_ID = ' + req.body.id;      
       break
     case 'OS':
       chkquery = "SELECT COUNT(*) cnt FROM OWNERSHIP_STATUS WHERE TRIM(UPPER(OS_NAME)) = TRIM(UPPER('" + req.body.name + "')) AND OS_ID != " + req.body.id
-      query = "UPDATE OWNERSHIP_STATUS SET OS_NAME = '" + req.body.name + "'" + ' WHERE OS_ID = ' + req.body.id;
+      query = "UPDATE OWNERSHIP_STATUS SET OS_NAME = TRIM('" + req.body.name + "')" + ' WHERE OS_ID = ' + req.body.id;
       break
     case 'PS':
       chkquery = "SELECT COUNT(*) cnt FROM PUBLISHER WHERE TRIM(UPPER(PS_PUBLISHERNAME)) = TRIM(UPPER('" + req.body.name + "')) AND PS_ID != " + req.body.id
-      query = "UPDATE PUBLISHER SET PS_PUBLISHERNAME = '" + req.body.name + "'" + ' WHERE PS_ID = ' + req.body.id;
+      query = "UPDATE PUBLISHER SET PS_PUBLISHERNAME = TRIM('" + req.body.name + "')" + ' WHERE PS_ID = ' + req.body.id;
       break
                       
     default:
