@@ -1,6 +1,6 @@
 <script setup>
   console.log('Home!!!')
-  import { onMounted, ref, computed } from 'vue'
+  import { onMounted, ref, computed, watch } from 'vue'
   import { VDataTable } from 'vuetify/labs/VDataTable'
   import axios from 'axios'
   import { useRouter } from "vue-router";
@@ -10,10 +10,9 @@
   import SnackBar from '../components/snackbar/Snackbar.vue'
   
   const route = useRouter()
-  const data = ref(null)
+  const data = ref([])
   const error = ref(null)
   // const refresh = ref(false)
-  const itemsPerPage = ref(10)
   const selectedRow = ref(null)
   const readed = ref(null)
   const search = ref("")
@@ -32,14 +31,21 @@
   const isSnackbarActive = ref(false)
   const snackbarTitle = ref(null)
   const snackbarColor = ref("green")
+  const globalbookfilter = ref('')
+
+  const page = ref(1)
+  const itemsPerPage = 10
+  const inputPage = ref(1)  
 
   // components: {VDataTable}
-  const fetchData = async (cat) => {
+  const fetchData = async (cat, bf) => {
     loading.value = true
     try {
       // console.log('https://myownbooks.000webhostapp.com/getData.php?cat='+cat)
       // const response = await axios('getData.php?cat=' + cat + '&user=' + user.value)
-      const response = await axios.get('/api/data/' + cat + '/-1/' + user.value)      
+      const response = await axios.get('/api/data/' + cat + '/-1/' + user.value, {
+        params: { bookfilter: bf }
+      })      
       console.log("response: ", response.data)
       data.value = response.data
       console.log("data: ", data.value)
@@ -72,6 +78,16 @@
       route.replace(to + '?id=' + item.BK_ID)
     } else {
       route.replace(to)
+    }
+  }
+
+  async function bookfilter( filter ) {
+    if (globalbookfilter.value === filter) {
+      globalbookfilter.value = ""
+      await fetchData('BK')
+    } else {
+      globalbookfilter.value = filter
+      await fetchData('BK', filter)
     }
   }
 
@@ -131,6 +147,33 @@
 
   }
 
+  const pageCount = computed(() =>
+  //console.log('data: ', data.length)
+    data && data.value.length ? Math.ceil(data.value.length / itemsPerPage) : 1
+  )
+
+  function goToPage() {
+    const value = Number(inputPage.value)
+    if (value >= 1 && value <= pageCount.value) {
+      console.log("value: ", value)
+      page.value = value
+      goToTop()
+    } else {
+      // ha érvénytelen számot ír be
+      inputPage.value = page.value
+    }
+  }
+
+  // ha az adatok változnak (pl. szűrésnél), visszaáll 1. oldalra
+  watch(() => data, () => {
+    page.value = 1
+    inputPage.value = 1
+  })
+
+  watch(page, () => {
+    inputPage.value = page.value
+  })
+
   function goToTop() {
     window.scrollTo(0,0)
   }
@@ -164,7 +207,7 @@
           <!-- <v-label>
             {{ title }}
           </v-label> -->
-            <v-data-table v-if="data"
+<!--            <v-data-table v-if="data"
               style="background-color: antiquewhite;"
               v-model = "selectedRow"
               density="compact"
@@ -184,6 +227,26 @@
               show-current-page="true"
               page-text=""
               @update:page="goToTop()"
+            >
+        -->
+            <v-data-table
+              v-if="data.length"
+              style="background-color: antiquewhite;"
+              :headers="headers"
+              :items="data"
+              v-model:page="page"
+              v-model:items-per-page="itemsPerPage"
+              show-current-page
+              item-value="BK_ID"
+              item-key="BK_ID"
+              density="compact"
+              hover
+              multi-sort
+              :search="search"
+              no-data-text="Nincs a keresésnek megfelelő könyv..."
+              :loading="loading"
+              loading-text="Betöltés... Kérem várjon"
+              @update:page="goToTop"
             >
             <!-- @click:row="btnClick(selectedRow)" -->
             <!-- fixed-header="true" -->
@@ -209,8 +272,49 @@
                         elevation="10"            
                       ></v-text-field>
                     </v-col>
-                    <v-col cols="2"></v-col>                  
-                    <v-col cols="3">
+                    <v-col cols="1"
+                        style="padding: 15px 0px 0px 0px; margin-top: 20px;" >
+                      <v-btn
+                        size="small"
+                        color="grey"                  
+                        icon
+                        @click="bookfilter('N')"
+                        :class="['ma-1', globalbookfilter === 'N' ? 'active-filter' : '']"                        
+                        elevation="10"
+                      >
+                        <v-icon>mdi-bookshelf</v-icon>
+                        <v-tooltip activator="parent" location="start" text="Olvasásra vár"/>
+                      </v-btn>
+                    </v-col>
+                    <v-col cols="1"
+                        style="padding: 15px 0px 0px 0px; margin-top: 20px;" >
+                      <v-btn
+                        size="small"
+                        color="red"                  
+                        icon
+                        @click="bookfilter('P')"
+                        :class="['ma-1', globalbookfilter === 'P' ? 'active-filter' : '']"                        
+                        elevation="10"
+                      >
+                        <v-icon>mdi-book-open-page-variant-outline</v-icon>
+                        <v-tooltip activator="parent" location="bottom" text="Olvasás alatt"/>
+                      </v-btn>
+                    </v-col>
+                    <v-col cols="1"
+                        style="padding: 15px 0px 0px 0px; margin-top: 20px;" >
+                      <v-btn
+                        size="small"
+                        color="green"                  
+                        icon
+                        @click="bookfilter('Y')"
+                        :class="['ma-1', globalbookfilter === 'Y' ? 'active-filter' : '']"                        
+                        elevation="10"
+                      >
+                        <v-icon>mdi-calendar-check-outline</v-icon>
+                        <v-tooltip activator="parent" location="end" text="Elolvasott"/>
+                      </v-btn>
+                    </v-col>
+                    <v-col cols="2">
                       <v-btn 
                         v-model="newBookBtn"
                         style="margin: 30px 10px 0px 10px; padding: 0px 20px 0px 20px;"                        
@@ -345,6 +449,34 @@
                   </v-btn> -->
                 </v-row>
               </template>
+              <template v-slot:bottom>
+                <v-row class="align-center justify-space-between pa-2">
+                  <v-col cols="auto">
+                    <v-pagination
+                      v-model="page"
+                      :length="pageCount"
+                      total-visible="5"
+                      prev-icon="mdi-chevron-left"
+                      next-icon="mdi-chevron-right"
+                    />
+                  </v-col>
+
+                  <v-col cols="auto" class="d-flex align-center">
+                    <span style="margin-right: 8px;">Ugrás oldalra:</span>
+                    <v-text-field
+                      v-model.number="inputPage"
+                      type="number"
+                      min="1"
+                      :max="pageCount"
+                      density="compact"
+                      hide-details
+                      style="width: 80px;"
+                      @keyup.enter="goToPage"
+                      placeholder=""
+                    />
+                  </v-col>
+                </v-row>
+              </template>
             </v-data-table>
           </v-card>
         </v-col>
@@ -366,6 +498,14 @@
       </v-row>
     </v-container>
 </template>
+
+<style scoped>
+  .active-filter {
+    border: 2px solid yellow;
+    border-radius: 20px;
+    box-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
+  }
+</style>
 
 <!-- <style lang="scss">
   main { 

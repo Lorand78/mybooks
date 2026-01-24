@@ -30,6 +30,8 @@ connection.connect((err) => {
 
 // API endpoint az adatok lekérdezésére
 app.get('/api/data/:cat/:id/:user', async (req, res) => {
+  const { bookfilter } = req.query;
+  console.log('Book filter:', bookfilter); // opcionális, csak hogy lásd, jön-e valami
   var query = '';
   var where = '';
   switch (req.params.cat) {
@@ -92,9 +94,15 @@ app.get('/api/data/:cat/:id/:user', async (req, res) => {
                  'WHERE AT_ID = BK_AT ' +
                    'AND BT_ID = BK_BT ' +
                    'AND CG_ID = BK_CG_ID ' +
-                   'AND BK_USER = "' + req.params.user + '"' + ' ORDER BY BK_BOOKTITLE';
+                   'AND BK_USER = "' + req.params.user + '"';
+
+        if (bookfilter) {
+          query = query + ' AND BK_READED = "' + bookfilter + ' "';
+        }
+
+        // query = query + ' ORDER BY BK_BOOKTITLE';
       }
-      console.log("publisher: ", query)
+      console.log("book: ", query)
       break
   };
   // const query = 'SELECT * FROM AUTHOR ORDER BY AT_AUTHORNAME';
