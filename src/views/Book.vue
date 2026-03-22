@@ -263,7 +263,7 @@
             sql = sql + ", BK_CG_ID = " + actcategory.value.CG_ID
           }
           if ( actbooktype.value.BT_ID ) { 
-            sql = sql + ", BK_BT = " + actcategory.value.BT_ID
+            sql = sql + ", BK_BT = " + actbooktype.value.BT_ID
           }
           if ( actownership.value != null ) { 
             sql = sql + ", BK_OS_ID = " + actownership.value.OS_ID 
